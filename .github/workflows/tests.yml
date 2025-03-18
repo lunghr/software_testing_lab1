@@ -71,7 +71,7 @@ jobs:
         run: ./gradlew test --tests com.example.software_testing_lab1.ArcsinDecompositionServiceTests
 
   test-bfs:
-    needs: test-arcsin
+    needs: test-context
     runs-on: ubuntu-latest
 
     steps:
