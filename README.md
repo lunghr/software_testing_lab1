@@ -57,7 +57,7 @@ fun factorial(n: Int): Int {
 }
 ```
 
-**Вспомогательная функция вычисления одного терма ряда** - функция используется исключительно в методe ```decompose```,
+**Вспомогательная функция вычисления одного терма ряда** - функция используется исключительно в функции ```decompose```,
 которая полностью покрыта тестами, поэтому данная функция напрямую не тестируется, так как формула была вынесена в
 отдельную функцию исключительно для лаконичности кода
 
@@ -178,6 +178,157 @@ fun `factorial should correct answers for sequence of n`() {
     val expected = listOf(1, 1, 2, 6, 24, 120, 720, 5040, 40320, 362880)
     val results = (0..9).map { arcsinDecompositionService.factorial(it) }
     assertEquals(expected, results)
+}
+```
+
+### Задание 2
+
+---
+
+#### Код алгоритма
+
+---
+
+**Основная функция** - Тестовое покрытие полное, рассматриваются все случаи входных данных, краевые случае,
+неправильный. В функцию включеная вспомоагтельная хвостовая рекурсия ```bfs()```, которая, по идее и является алгоритмом
+**bfs**
+
+```kotlin
+ fun breadthFirstSearch(graph: Map<Int, List<Int>>, start: Int): List<Int> {
+    require(start in graph.keys) { "Start vertex should be in graph" }
+    require(graph.isNotEmpty()) { "Graph should not be empty" }
+    tailrec fun bfs(queue: List<Int>, visited: List<Int>, result: List<Int>): List<Int> {
+        if (queue.isEmpty()) return result
+        val (head, tail) = queue.first() to queue.drop(1)
+        val newVisited = graph[head]?.filterNot { it in visited } ?: emptyList()
+        return bfs(tail + newVisited, visited + newVisited, result + head)
+    }
+    return bfs(listOf(start), listOf(start), emptyList())
+}
+```
+
+---
+
+#### Тесты
+
+---
+
+**Базовый тест**
+
+```kotlin
+
+@Test
+fun `breadthFirstSearch should correct answers for graph`() {
+    val graph = mapOf(
+        0 to listOf(1, 2),
+        1 to listOf(0, 3, 4),
+        2 to listOf(0, 5),
+        3 to listOf(1),
+        4 to listOf(1),
+        5 to listOf(2)
+    )
+    val start = 0
+    val expected = listOf(0, 1, 2, 3, 4, 5)
+    val result = bfsService.breadthFirstSearch(graph, start)
+    assert(expected == result)
+}
+```
+
+**Тесты на неккоректный ввод**
+
+```kotlin
+
+@Test
+fun `breadthFirstSearch should throw IllegalArgumentException when start is not in graph`() {
+    val graph = mapOf(
+        0 to listOf(1, 2),
+        1 to listOf(0, 3, 4),
+        2 to listOf(0, 5),
+        3 to listOf(1),
+        4 to listOf(1),
+        5 to listOf(2)
+    )
+    val start = 6
+    assertThrows<IllegalArgumentException> {
+        bfsService.breadthFirstSearch(graph, start)
+    }
+}
+
+@Test
+fun `breadthFirstSearch should throw IllegalArgumentException when graph is empty`() {
+    val graph = mapOf<Int, List<Int>>()
+    val start = 0
+    assertThrows<IllegalArgumentException> {
+        bfsService.breadthFirstSearch(graph, start)
+    }
+}
+```
+
+**Краевой случай:** граф с одной вершиной
+
+```kotlin
+@Test
+fun `breadthFirstSearch should correct answer for graph with one vertex`() {
+    val graph = mapOf(0 to emptyList<Int>())
+    val start = 0
+    val expected = listOf(0)
+    val result = bfsService.breadthFirstSearch(graph, start)
+    assert(expected == result)
+}
+```
+
+**Краевой случай:** несвязный граф
+
+```kotlin
+@Test
+fun `breadthFirstSearch should correct answer for incoherent graph`() {
+    val graph = mapOf(
+        1 to listOf(2),
+        2 to listOf(1),
+        3 to listOf(4),
+        4 to listOf(3)
+    )
+    val start = 2
+    val expected = listOf(2, 1)
+    val result = bfsService.breadthFirstSearch(graph, start)
+    assert(expected == result)
+}
+```
+
+**Краевой случай:** граф с циклом
+
+```kotlin
+@Test
+fun `breadthFirstSearch should correct answer for graph with cycle`() {
+    val graph = mapOf(
+        0 to listOf(1),
+        1 to listOf(0, 2),
+        2 to listOf(1)
+    )
+    val start = 0
+    val expected = listOf(0, 1, 2)
+    val result = bfsService.breadthFirstSearch(graph, start)
+    assert(expected == result)
+}
+```
+
+**Краевой случай:** линейный граф
+
+```kotlin
+@Test
+fun `breadthFirstSearch should correct answer for linear graph`() {
+    val graph = mapOf(
+        0 to listOf(1),
+        1 to listOf(2),
+        2 to listOf(3),
+        3 to listOf(4),
+        4 to listOf(5),
+        5 to listOf(6)
+    )
+    val start = 0
+    val expected = listOf(0, 1, 2, 3, 4, 5, 6)
+    val result = bfsService.breadthFirstSearch(graph, start)
+    assert(expected == result)
 }
 ```
 
