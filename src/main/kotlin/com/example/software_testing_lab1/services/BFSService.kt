@@ -1,6 +1,7 @@
 package com.example.software_testing_lab1.services
 
 import org.springframework.stereotype.Service
+import kotlin.random.Random
 
 @Service
 class BFSService {
@@ -17,4 +18,20 @@ class BFSService {
         return bfs(listOf(start), listOf(start), emptyList())
     }
 
+    fun generateGraph(vertices: Int, edgeProbability: Double = 0.3): Map<Int, List<Int>> {
+        require(vertices > 0) { "Graph must have at least one vertex" }
+        require(edgeProbability in 0.0..1.0) { "Edge probability must be between 0 and 1" }
+        val graph = mutableMapOf<Int, MutableSet<Int>>().apply {
+            (1..vertices).forEach { this[it] = mutableSetOf() }
+        }
+        (1..vertices).forEach { v ->
+            val possibleNeighbors = (1..vertices).filter { it != v && it !in graph[v]!! }
+            val neighborsToAdd = possibleNeighbors.filter { Random.nextDouble() < edgeProbability }
+            neighborsToAdd.forEach { neighbor ->
+                graph[v]?.add(neighbor)
+                graph[neighbor]?.add(v)
+            }
+        }
+        return graph.mapValues { it.value.toList() }
+    }
 }

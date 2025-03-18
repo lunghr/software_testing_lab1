@@ -99,4 +99,64 @@ class BFSServiceTests {
         val result = bfsService.breadthFirstSearch(graph, start)
         assert(expected == result)
     }
+
+    @Test
+    fun `generateGraph should throw IllegalArgumentException when vertices is not positive`() {
+        val vertices = 0
+        assertThrows<IllegalArgumentException> {
+            bfsService.generateGraph(vertices)
+        }
+    }
+
+
+    @Test
+    fun `generateGraph should throw IllegalArgumentException when edgeProbability is not in range from 0 to 1`() {
+        val vertices = 5
+        val edgeProbability = 1.1
+        assertThrows<IllegalArgumentException> {
+            bfsService.generateGraph(vertices, edgeProbability)
+        }
+    }
+
+    @Test
+    fun `generateGraph should return symmetric graph for vertices = 10 and edgeProbability = 0,8`() {
+        val graph = bfsService.generateGraph(10, 0.8)
+
+        // Проверка симметричности рёбер
+        graph.forEach { (vertex, neighbors) ->
+            neighbors.forEach { neighbor ->
+                assert(graph[neighbor]?.contains(vertex) == true) {
+                    "Graph is not symmetric: Vertex $vertex is connected to $neighbor, but not the other way around"
+                }
+            }
+        }
+    }
+
+
+    @Test
+    fun `generateGraph should return empty graph for vertices = 10 and edgeProbability = 0`() {
+        val graph = bfsService.generateGraph(10, 0.0)
+        assert(graph.all { it.value.isEmpty() })
+    }
+
+    @Test
+    fun `generateGraph should return fully connected graph for vertices = 10 and edgeProbability = 1`() {
+        val graph = bfsService.generateGraph(10, 1.0)
+        assert(graph.all { (v, neighbors) ->
+            neighbors.size == 9 && neighbors.all { it != v }
+        })
+    }
+
+    @Test
+    fun `generateGraph should return graph with no self-loops`() {
+        val graph = bfsService.generateGraph(10, 0.5)
+        assert(graph.all { (v, neighbors) -> v !in neighbors })
+    }
+
+    @Test
+    fun `generateGraph should return graph with correct number of vertices`() {
+        val graph = bfsService.generateGraph(10, 0.5)
+        assert(graph.size == 10)
+    }
+
 }
