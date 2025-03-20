@@ -4,6 +4,9 @@ import com.example.software_testing_lab1.models.Arcsin
 import com.example.software_testing_lab1.services.ArcsinDecompositionService
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
+import org.junit.jupiter.params.provider.ValueSource
 import kotlin.test.Test
 
 class ArcsinDecompositionServiceTests {
@@ -19,9 +22,9 @@ class ArcsinDecompositionServiceTests {
         assertEquals("n should be non-negative", exception.message)
     }
 
-    @Test
-    fun `factorial should return 1 when n is 0`() {
-        val n = 0
+    @ParameterizedTest
+    @ValueSource(ints = [0])
+    fun `factorial should return 1 when n is 0`(n: Int) {
         val result = arcsinDecompositionService.factorial(n)
         assertEquals(1, result)
     }
@@ -34,9 +37,43 @@ class ArcsinDecompositionServiceTests {
         assertEquals(expected, results)
     }
 
+    //Parametrized version of the test above
+    @ParameterizedTest
+    @CsvSource(
+        "0, 1",
+        "1, 1",
+        "2, 2",
+        "3, 6",
+        "4, 24",
+        "5, 120",
+        "6, 720",
+        "7, 5040",
+        "8, 40320",
+        "9, 362880"
+    )
+    fun `factorial should return correct values`(n: Int, expected: Int) {
+        val result = arcsinDecompositionService.factorial(n)
+        assertEquals(expected, result)
+    }
+
     @Test
     fun `decompose should throw IllegalArgumentException when x is not in range from -1 to 1`() {
         val arcsin = Arcsin(2.0, 0.1)
+        val exception = assertThrows<IllegalArgumentException> {
+            arcsinDecompositionService.decompose(arcsin)
+        }
+        assertEquals("x should be in range [-1, 1]", exception.message)
+    }
+
+    //Parametrized version of the test above
+    @ParameterizedTest
+    @CsvSource(
+        "2.0, 0.1",
+        "-1.5, 0.05",
+        "1.2, 0.001"
+    )
+    fun `decompose should throw IllegalArgumentException when x is out of range`(x: Double, accuracy: Double) {
+        val arcsin = Arcsin(x, accuracy)
         val exception = assertThrows<IllegalArgumentException> {
             arcsinDecompositionService.decompose(arcsin)
         }
@@ -64,6 +101,20 @@ class ArcsinDecompositionServiceTests {
     @Test
     fun `decompose should return IllegalAgumentException when accuracy is 1`() {
         val arcsin = Arcsin(0.5, 1.0)
+        val exception = assertThrows<IllegalArgumentException> {
+            arcsinDecompositionService.decompose(arcsin)
+        }
+        assertEquals("accuracy should be in range (0, 1)", exception.message)
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        "0.5, -0.1",
+        "0.5, 0.0",
+        "0.5, 1.0"
+    )
+    fun `decompose should throw IllegalArgumentException for invalid accuracy`(x: Double, accuracy: Double) {
+        val arcsin = Arcsin(x, accuracy)
         val exception = assertThrows<IllegalArgumentException> {
             arcsinDecompositionService.decompose(arcsin)
         }
@@ -108,6 +159,5 @@ class ArcsinDecompositionServiceTests {
             assertEquals(expectedValue, resultValue, delta)
         }
     }
-
 
 }
