@@ -189,7 +189,7 @@ fun `factorial should correct answers for sequence of n`() {
 
 ---
 
-**Основная функция** - Тестовое покрытие полное, рассматриваются все случаи входных данных, краевые случае,
+**Основная функция** - Тестовое покрытие полное, рассматриваются все случаи входных данных, краевые случаи,
 неправильный. В функцию включеная вспомоагтельная хвостовая рекурсия ```bfs()```, которая, по идее и является алгоритмом
 **bfs**
 
@@ -205,6 +205,28 @@ fun `factorial should correct answers for sequence of n`() {
     }
     return bfs(listOf(start), listOf(start), emptyList())
 }
+```
+
+**Функция генерации графа** - Тестовое покрытие полное, рассматриваются все случаи входных данных, краевые
+случаи,неправильный ввод для обработки ошибок. Функция генерирует граф, представленный в виде словаря, где ключ - это вершина, а значения - список смежных с ней вершин.
+
+```kotlin
+    fun generateGraph(vertices: Int, edgeProbability: Double = 0.3): Map<Int, List<Int>> {
+        require(vertices > 0) { "Graph must have at least one vertex" }
+        require(edgeProbability in 0.0..1.0) { "Edge probability must be between 0 and 1" }
+        val graph = mutableMapOf<Int, MutableSet<Int>>().apply {
+            (1..vertices).forEach { this[it] = mutableSetOf() }
+        }
+        (1..vertices).forEach { v ->
+            val possibleNeighbors = (1..vertices).filter { it != v && it !in graph[v]!! }
+            val neighborsToAdd = possibleNeighbors.filter { Random.nextDouble() < edgeProbability }
+            neighborsToAdd.forEach { neighbor ->
+                graph[v]?.add(neighbor)
+                graph[neighbor]?.add(v)
+            }
+        }
+        return graph.mapValues { it.value.toList() }
+    }
 ```
 
 ---
@@ -330,5 +352,113 @@ fun `breadthFirstSearch should correct answer for linear graph`() {
     val result = bfsService.breadthFirstSearch(graph, start)
     assert(expected == result)
 }
+```
+
+**Тесты для генерации графа**
+
+```kotlin
+@Nested
+    inner class GenerateGraphFunctionTest{
+        @Test
+        fun `generateGraph should throw IllegalArgumentException when vertices is not positive`() {
+            val vertices = 0
+            assertThrows<IllegalArgumentException> {
+                bfsService.generateGraph(vertices)
+            }
+        }
+
+
+        @Test
+        fun `generateGraph should throw IllegalArgumentException when edgeProbability is not in range from 0 to 1`() {
+            val vertices = 5
+            val edgeProbability = 1.1
+            assertThrows<IllegalArgumentException> {
+                bfsService.generateGraph(vertices, edgeProbability)
+            }
+        }
+
+        @Test
+        fun `generateGraph should return symmetric graph for vertices = 10 and edgeProbability = 0,8`() {
+            val graph = bfsService.generateGraph(10, 0.8)
+
+            // Проверка симметричности рёбер
+            graph.forEach { (vertex, neighbors) ->
+                neighbors.forEach { neighbor ->
+                    assert(graph[neighbor]?.contains(vertex) == true) {
+                        "Graph is not symmetric: Vertex $vertex is connected to $neighbor, but not the other way around"
+                    }
+                }
+            }
+        }
+
+
+        @Test
+        fun `generateGraph should return empty graph for vertices = 10 and edgeProbability = 0`() {
+            val graph = bfsService.generateGraph(10, 0.0)
+            assert(graph.all { it.value.isEmpty() })
+        }
+
+        @Test
+        fun `generateGraph should return fully connected graph for vertices = 10 and edgeProbability = 1`() {
+            val graph = bfsService.generateGraph(10, 1.0)
+            assert(graph.all { (v, neighbors) ->
+                neighbors.size == 9 && neighbors.all { it != v }
+            })
+        }
+
+        @Test
+        fun `generateGraph should return graph with no self-loops`() {
+            val graph = bfsService.generateGraph(10, 0.5)
+            assert(graph.all { (v, neighbors) -> v !in neighbors })
+        }
+
+        @Test
+        fun `generateGraph should return graph with correct number of vertices`() {
+            val graph = bfsService.generateGraph(10, 0.5)
+            assert(graph.size == 10)
+        }
+    }
+```
+
+**Тесты для совместной работы функций**
+
+```kotlin
+@Nested
+    inner class GeneralWorkflowTest{
+        @Test
+        fun `breadthFirstSearch should return all reachable nodes in generated graph`() {
+            val graph = bfsService.generateGraph(10, 0.5)
+            val startNode = graph.keys.random()
+            val visitedNodes = bfsService.breadthFirstSearch(graph, startNode)
+
+            assertEquals(visitedNodes.toSet().size, visitedNodes.size)
+            assert(visitedNodes.all { it in graph.keys })
+        }
+
+        @Test
+        fun `breadthFirstSearch should visit all nodes in fully connected graph`() {
+            val graph = bfsService.generateGraph(5, 1.0)
+            val startNode = graph.keys.first()
+            val visitedNodes = bfsService.breadthFirstSearch(graph, startNode)
+
+            assertEquals(graph.keys.size, visitedNodes.size)
+        }
+
+        @Test
+        fun `breadthFirstSearch should return only start node for isolated vertices`() {
+            val graph = bfsService.generateGraph(5, 0.0)
+            graph.keys.forEach { node ->
+                val visitedNodes = bfsService.breadthFirstSearch(graph, node)
+                assertEquals(listOf(node), visitedNodes)
+            }
+        }
+
+        @Test
+        fun `breadthFirstSearch should return single node for graph with one vertex`() {
+            val graph = bfsService.generateGraph(1)
+            val visitedNodes = bfsService.breadthFirstSearch(graph, 1)
+            assertEquals(listOf(1), visitedNodes)
+        }
+    }
 ```
 
