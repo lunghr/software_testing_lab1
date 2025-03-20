@@ -54,7 +54,6 @@ data class Window(
 
     fun closeWindow() = Window(appearance, floor, false)
 
-    fun isMajestic() = appearance == WindowAppearance.MAJESTIC
 }
 
 data class Building(
@@ -77,7 +76,7 @@ data class Platform(
 }
 
 data class Speaker(
-    val state: SpeakerState = SpeakerState.SILENT
+    var state: SpeakerState = SpeakerState.SILENT
 ) {
 
     fun startSpeaking() = Speaker(SpeakerState.SPEAKING)
@@ -86,20 +85,20 @@ data class Speaker(
 
     fun stopSpeaking() = Speaker(SpeakerState.SILENT)
 
-    fun isSpeaking() = state == SpeakerState.SPEAKING
+    fun isSpeaking() = state == SpeakerState.SPEAKING || state == SpeakerState.PAUSED
 }
 
 data class Crowd(
-    val people: Int = 0,
+    var people: Int = 5,
     val reaction: CrowdReaction = CrowdReaction.SILENT
 ) {
     fun addPerson() = Crowd(people + 1, reaction)
 
+    fun removePerson() = Crowd(people - 1, reaction)
+
     fun isCrowdExist() = people > 0
 
     private fun changeReaction(newReaction: CrowdReaction) = Crowd(people, newReaction)
-
-    fun isQuiet() = reaction == CrowdReaction.SILENT
 
     fun reactToSpeaker(speaker: Speaker, reaction: CrowdReaction) =
         (speaker.isSpeaking()).takeIf { it }?.let { changeReaction(reaction) } ?: changeReaction(CrowdReaction.SILENT)
