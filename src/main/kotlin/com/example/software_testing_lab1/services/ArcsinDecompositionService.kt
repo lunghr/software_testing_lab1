@@ -12,7 +12,7 @@ class ArcsinDecompositionService {
 
     fun decompose(arcsin: Arcsin): Double {
         require(arcsin.x in -1.0..1.0) { "x should be in range [-1, 1]" }
-        require(arcsin.accuracy in 0.0..1.0 && arcsin.accuracy != 0.0 && arcsin.accuracy != 1.0) { "accuracy should be in range (0, 1)" }
+        require(arcsin.accuracy > 0.0 && arcsin.accuracy < 1.0) { "accuracy should be in range (0, 1)" }
         if (arcsin.x == 1.0) return PI / 2 else if (arcsin.x == -1.0) return -PI / 2
         return generateSequence(0) { it + 1 }
             .map { n ->

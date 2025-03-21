@@ -20,7 +20,7 @@ fun toggleLocation(location: Location) = when (location) {
     Location.IN_FRONT_OF -> Location.BEHIND
 }
 
-enum class CrowdReaction {
+enum class Reaction {
     JUBILANT,
     ANGRY,
     SAD,
@@ -28,78 +28,138 @@ enum class CrowdReaction {
 }
 
 enum class SpeakerState {
-    SPEAKING, PAUSED, SILENT
+    SPEAKING, SILENT, PAUSED
 }
 
-
-data class Arthur(
-    val action: Action = Action.STAY
+class Person(
+    val name: String,
+    var inCrowd: Boolean = false,
+    var action: Action = Action.STAY,
+    var reaction: Reaction = Reaction.SILENT
 ) {
+    fun fly(): Person {
+        this.action = Action.FLY
+        return this
+    }
 
-    fun fly() = Arthur(Action.FLY)
+    fun stay(): Person {
+        this.action = Action.STAY
+        return this
+    }
 
-    fun stay() = Arthur(Action.STAY)
+    fun changeReaction(newReaction: Reaction): Person {
+        this.reaction = newReaction
+        return this
+    }
+
+    fun joinCrowd(): Person {
+        this.inCrowd = true
+        return this
+    }
+
+    fun leaveCrowd(): Person {
+        this.inCrowd = false
+        return this
+    }
 }
 
-data class Window(
-    val appearance: WindowAppearance = WindowAppearance.ORDINARY,
-    val floor: Int = 1,
-    val isOpen: Boolean = false
+class Window(
+    var appearance: WindowAppearance = WindowAppearance.ORDINARY,
+    var floor: Int = 1,
+    var isOpen: Boolean = false
 ) {
-    fun changeAppearance(newAppearance: WindowAppearance) = Window(newAppearance, floor, isOpen)
+    fun changeAppearance(newAppearance: WindowAppearance): Window {
+        this.appearance = newAppearance
+        return this
+    }
 
-    fun changeFloor(newFloor: Int) = Window(appearance, newFloor, isOpen)
+    fun changeFloor(newFloor: Int): Window {
+        this.floor = newFloor
+        return this
+    }
 
-    fun openWindow() = Window(appearance, floor, true)
+    fun openWindow(): Window {
+        this.isOpen = true
+        return this
+    }
 
-    fun closeWindow() = Window(appearance, floor, false)
+    fun closeWindow(): Window {
+        this.isOpen = false
+        return this
+    }
 
 }
 
-data class Building(
-    val floors: Int = 5,
-    val location: Location = Location.BEHIND,
+class Building(
+    var floors: Int = 5,
+    var location: Location = Location.BEHIND,
 ) {
-    fun addFloor() = Building(floors + 1, location)
+    fun changeLocation(newLocation: Location): Building {
+        this.location = newLocation
+        return this
+    }
 
-    fun removeFloor() = Building(floors - 1, location)
+    fun addFloor(): Building {
+        this.floors += 1
+        return this
+    }
 
-    fun changeLocation(newLocation: Location) = Building(floors, newLocation)
-
-    fun isTall() = floors > 5
+    fun removeFloor(): Building {
+        this.floors -= 1
+        return this
+    }
 }
 
-data class Platform(
-    val location: Location = Location.IN_FRONT_OF,
+class Platform(
+    var location: Location = Location.IN_FRONT_OF,
 ) {
-    fun changeLocation(newLocation: Location) = Platform(newLocation)
+    fun changeLocation(newLocation: Location): Platform {
+        this.location = newLocation
+        return this
+    }
 }
 
-data class Speaker(
+class Speaker(
     var state: SpeakerState = SpeakerState.SILENT
 ) {
 
-    fun startSpeaking() = Speaker(SpeakerState.SPEAKING)
+    fun startSpeaking(): Speaker {
+        this.state = SpeakerState.SPEAKING
+        return this
+    }
 
-    fun pauseSpeaking() = Speaker(SpeakerState.PAUSED)
+    fun stopSpeaking(): Speaker {
+        this.state = SpeakerState.SILENT
+        return this
+    }
 
-    fun stopSpeaking() = Speaker(SpeakerState.SILENT)
+    fun pauseSpeaking(): Speaker {
+        this.state = SpeakerState.PAUSED
+        return this
+    }
 
-    fun isSpeaking() = state == SpeakerState.SPEAKING || state == SpeakerState.PAUSED
+    fun isSpeaking(): Boolean {
+        return this.state == SpeakerState.SPEAKING
+    }
+
+
 }
 
-data class Crowd(
-    var people: Int = 5,
-    val reaction: CrowdReaction = CrowdReaction.SILENT
+class Crowd(
+    var people: List<Person> = emptyList(),
 ) {
-    fun addPerson() = Crowd(people + 1, reaction)
+    fun reactToSpeaker(newReaction: Reaction): Crowd {
+        this.people.forEach { it.changeReaction(newReaction) }
+        return this
+    }
 
-    fun removePerson() = Crowd(people - 1, reaction)
+    fun addPerson(person: Person): Crowd {
+        this.people += person
+        return this
+    }
 
-    fun isCrowdExist() = people > 0
-
-    private fun changeReaction(newReaction: CrowdReaction) = Crowd(people, newReaction)
-
-    fun reactToSpeaker(speaker: Speaker, reaction: CrowdReaction) =
-        (speaker.isSpeaking()).takeIf { it }?.let { changeReaction(reaction) } ?: changeReaction(CrowdReaction.SILENT)
+    fun removePerson(person: Person): Crowd {
+        this.people -= person
+        return this
+    }
 }
