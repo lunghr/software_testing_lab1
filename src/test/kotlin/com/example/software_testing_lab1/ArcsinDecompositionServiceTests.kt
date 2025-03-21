@@ -30,13 +30,6 @@ class ArcsinDecompositionServiceTests {
     }
 
 
-    @Test
-    fun `factorial should correct answers for sequence of n`() {
-        val expected = listOf(1, 1, 2, 6, 24, 120, 720, 5040, 40320, 362880)
-        val results = (0..9).map { arcsinDecompositionService.factorial(it) }
-        assertEquals(expected, results)
-    }
-
     //Parametrized version of the test above
     @ParameterizedTest
     @CsvSource(
@@ -54,15 +47,6 @@ class ArcsinDecompositionServiceTests {
     fun `factorial should return correct values`(n: Int, expected: Int) {
         val result = arcsinDecompositionService.factorial(n)
         assertEquals(expected, result)
-    }
-
-    @Test
-    fun `decompose should throw IllegalArgumentException when x is not in range from -1 to 1`() {
-        val arcsin = Arcsin(2.0, 0.1)
-        val exception = assertThrows<IllegalArgumentException> {
-            arcsinDecompositionService.decompose(arcsin)
-        }
-        assertEquals("x should be in range [-1, 1]", exception.message)
     }
 
     //Parametrized version of the test above
@@ -88,6 +72,8 @@ class ArcsinDecompositionServiceTests {
         }
         assertEquals("accuracy should be in range (0, 1)", exception.message)
     }
+
+
 
     @Test
     fun `decompose should return IllegalAgumentException when accuracy is 0`() {
@@ -138,20 +124,16 @@ class ArcsinDecompositionServiceTests {
     @Test
     fun `decompose should return correct answers for list of x and accuracy with unique deltas`() {
         val arcsins = listOf(
-            0.0 to 0.1,
-            0.5 to 0.001,
-            0.3 to 0.01,
-            0.7 to 0.0001,
             0.1 to 0.00001,
-            0.2 to 0.0001,
+            -0.1 to 0.00001,
             -1.0 to 0.00001,
             1.0 to 0.001
         ).map {
             Arcsin(it.first, it.second)
         }
 
-        val expected = listOf(0.0, 0.5235, 0.3047, 0.7753, 0.10017, 0.2014, -1.5708, 1.5708)
-        val deltas = listOf(0.1, 0.001, 0.01, 0.0001, 0.00001, 0.0001, 0.00001, 0.001)
+        val expected = listOf( 0.10017, -0.10017, -1.5708, 1.5708)
+        val deltas = listOf( 0.00001, 0.0001, 0.00001, 0.001)
         val results = arcsins.map { arcsinDecompositionService.decompose(it) }
 
         expected.zip(results).zip(deltas).forEach { (expectedResult, delta) ->

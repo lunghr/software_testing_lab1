@@ -46,9 +46,8 @@ class BFSServiceTests {
         @Test
         fun `breadthFirstSearch should throw IllegalArgumentException when graph is empty`() {
             val graph = mapOf<Int, List<Int>>()
-            val start = 0
             assertThrows<IllegalArgumentException> {
-                bfsService.breadthFirstSearch(graph, start)
+                bfsService.breadthFirstSearch(graph, 0)
             }
         }
 
@@ -118,9 +117,18 @@ class BFSServiceTests {
 
 
         @Test
-        fun `generateGraph should throw IllegalArgumentException when edgeProbability is not in range from 0 to 1`() {
+        fun `generateGraph should throw IllegalArgumentException when edgeProbability is bigger than 1`() {
             val vertices = 5
             val edgeProbability = 1.1
+            assertThrows<IllegalArgumentException> {
+                bfsService.generateGraph(vertices, edgeProbability)
+            }
+        }
+
+        @Test
+        fun `generateGraph should throw IllegalArgumentException when edgeProbability is less than 0`() {
+            val vertices = 5
+            val edgeProbability = -0.2
             assertThrows<IllegalArgumentException> {
                 bfsService.generateGraph(vertices, edgeProbability)
             }

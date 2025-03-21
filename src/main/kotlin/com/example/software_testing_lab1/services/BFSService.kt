@@ -8,7 +8,6 @@ class BFSService {
 
     fun breadthFirstSearch(graph: Map<Int, List<Int>>, start: Int): List<Int> {
         require(start in graph.keys) { "Start vertex should be in graph" }
-        require(graph.isNotEmpty()) { "Graph should not be empty" }
         tailrec fun bfs(queue: List<Int>, visited: List<Int>, result: List<Int>): List<Int> {
             if (queue.isEmpty()) return result
             val (head, tail) = queue.first() to queue.drop(1)
@@ -28,8 +27,8 @@ class BFSService {
             val possibleNeighbors = (1..vertices).filter { it != v && it !in graph[v]!! }
             val neighborsToAdd = possibleNeighbors.filter { Random.nextDouble() < edgeProbability }
             neighborsToAdd.forEach { neighbor ->
-                graph[v]?.add(neighbor)
-                graph[neighbor]?.add(v)
+                graph[v]!!.add(neighbor)
+                graph[neighbor]!!.add(v)
             }
         }
         return graph.mapValues { it.value.toList() }
